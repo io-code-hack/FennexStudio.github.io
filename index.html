@@ -1,296 +1,472 @@
-
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080808">
+<meta name="theme-color" content="#0b0a0f" id="theme-color">
 
 <title>Fennex Studio</title>
-<meta name="description" content="Aplicaciones y juegos desarrollados por Fennex Studio.">
+<meta name="description" content=" Fennex Studio.">
 
 <link rel="icon" href="imagen/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script>
+/* Aplica el tema guardado antes de pintar (evita parpadeo) */
+(function () {
+  var t = "dark";
+  try {
+    t = localStorage.getItem("tema") ||
+      (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  } catch (e) {}
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
 
 <style>
 :root {
-  --bg: #080808;
-  --surface: #111111;
-  --surface-hover: #171717;
-  --border: #252525;
+  --bg: #0b0a0f;
+  --surface: rgba(22, 20, 30, .78);
+  --surface-2: rgba(255, 255, 255, .05);
+  --border: rgba(255, 255, 255, .1);
+  --text: #f5f3f7;
+  --muted: #a09bad;
   --red: #e51b27;
-  --text: #f4f4f4;
-  --muted: #858585;
+  --red-2: #ff5a3c;
+  --blob-a: #e51b27;
+  --blob-b: #ff8a2b;
+  --blob-c: #6d3df0;
+  --blob-op: .32;
+  --float-op: .16;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .45);
+  --font: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+[data-theme="light"] {
+  --bg: #f4f2f7;
+  --surface: rgba(255, 255, 255, .86);
+  --surface-2: rgba(30, 10, 50, .05);
+  --border: rgba(30, 10, 50, .11);
+  --text: #18141f;
+  --muted: #655f72;
+  --blob-op: .24;
+  --float-op: .2;
+  --shadow: 0 16px 40px rgba(60, 30, 90, .14);
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.5;
+  font-family: var(--font);
+  line-height: 1.55;
   min-height: 100vh;
+  transition: background .3s, color .3s;
 }
 
-.container {
-  width: min(100% - 32px, 850px);
-  margin: auto;
+.container { width: min(100% - 32px, 880px); margin: auto; }
+
+/* ============ FONDO ANIMADO ============ */
+/* Para usar una imagen propia: .bg { background-image: url("imagen/fondo.jpg"); background-size: cover; } */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-/* HEADER */
+.blob {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: var(--blob-op);
+  animation: deriva 26s ease-in-out infinite alternate;
+}
+.blob.b1 { background: var(--blob-a); top: -18vmax; left: -14vmax; }
+.blob.b2 { background: var(--blob-b); bottom: -22vmax; right: -16vmax; animation-delay: -9s; }
+.blob.b3 { background: var(--blob-c); top: 30%; left: 40%; width: 30vmax; height: 30vmax; animation-delay: -16s; }
 
-header {
-  padding: 30px 0 22px;
-  text-align: center;
+@keyframes deriva {
+  to { transform: translate3d(9vmax, 7vmax, 0) scale(1.15); }
 }
 
-.logo {
-  width: 190px;
-  max-width: 65%;
-  height: auto;
-  display: block;
-  margin: auto;
+.rejilla {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 72%);
+  animation: rejilla 40s linear infinite;
+}
+@keyframes rejilla { to { background-position: 0 36px, 36px 0; } }
+
+.flota {
+  position: absolute;
+  color: var(--red-2);
+  opacity: var(--float-op);
+  animation: flota var(--t, 18s) ease-in-out infinite alternate;
+}
+.flota svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes flota {
+  from { transform: translate3d(0, 0, 0) rotate(var(--r0, -8deg)); }
+  to   { transform: translate3d(var(--dx, 20px), var(--dy, -50px), 0) rotate(var(--r1, 12deg)); }
 }
 
-/* INTRODUCCIÓN */
-
-.intro {
-  text-align: center;
-  margin: 10px 0 32px;
+/* ============ BARRA SUPERIOR ============ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
 }
+
+.topbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 58px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -.3px;
+  min-width: 0;
+}
+
+.logo { height: 34px; width: auto; max-width: 120px; display: block; }
+
+.tema-btn {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .25s, background .2s;
+}
+.tema-btn:hover { background: var(--border); }
+.tema-btn:active { transform: rotate(25deg) scale(.92); }
+.tema-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tema-btn .sol { display: none; }
+[data-theme="light"] .tema-btn .sol { display: block; }
+[data-theme="light"] .tema-btn .luna { display: none; }
+
+:focus-visible { outline: 2px solid var(--red-2); outline-offset: 3px; }
+
+/* ============ PORTADA ============ */
+.intro { padding: 42px 0 30px; }
 
 .intro h1 {
-  font-size: 1.55rem;
-  font-weight: 750;
-  letter-spacing: -0.7px;
+  font-size: clamp(1.7rem, 6vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -1.2px;
+  max-width: 14em;
 }
 
 .intro p {
   color: var(--muted);
-  font-size: .85rem;
-  margin-top: 4px;
-}
-
-/* SECCIÓN */
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.section-title h2 {
   font-size: .95rem;
-  font-weight: 700;
+  margin-top: 10px;
+  max-width: 34em;
 }
 
-.section-title span {
-  height: 1px;
-  flex: 1;
-  background: var(--border);
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: .75rem;
+  font-weight: 600;
 }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--red-2); }
 
-/* PROYECTOS */
+.section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.section-title h2 { font-size: 1.05rem; font-weight: 700; }
+.section-title span { height: 1px; flex: 1; background: var(--border); }
 
+/* ============ TARJETAS ============ */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: 12px;
-  padding-bottom: 45px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 16px;
+  padding-bottom: 50px;
 }
 
 .project {
   background: var(--surface);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 15px;
+  border-radius: 22px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
-  transition: border-color .2s, background .2s, transform .2s;
+  gap: 16px;
+  box-shadow: var(--shadow);
+  transition: border-color .2s;
 }
+.project:hover { border-color: var(--red); }
 
-.project:hover {
-  background: var(--surface-hover);
-  border-color: #484848;
-  transform: translateY(-2px);
-}
-
-/* INFORMACIÓN */
-
-.project-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.project-header { display: flex; align-items: center; gap: 16px; }
 
 .app-icon {
-  width: 54px;
-  height: 54px;
+  width: 88px;
+  height: 88px;
   flex-shrink: 0;
   object-fit: cover;
-  border-radius: 12px;
-  background: #202020;
+  border-radius: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   display: grid;
   place-items: center;
-  font-size: 1.3rem;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 800;
   color: var(--red);
 }
 
-.project-info {
-  min-width: 0;
-}
+.project-info { min-width: 0; }
+.project-info h3 { font-size: 1.3rem; font-weight: 800; letter-spacing: -.5px; line-height: 1.2; }
+.dev { color: var(--red-2); font-size: .82rem; font-weight: 600; margin-top: 2px; }
 
-.project-info h3 {
-  font-size: 1rem;
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.badge {
+  font-size: .68rem;
   font-weight: 700;
-  line-height: 1.3;
+  padding: 2px 9px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
 }
-
-.type {
-  display: inline-block;
-  color: #ff6870;
-  font-size: .7rem;
-  margin-top: 3px;
-}
-
-.description {
-  color: #a0a0a0;
-  font-size: .82rem;
-  line-height: 1.55;
-}
-
-/* DATOS */
+.badge.beta { background: var(--red); border-color: var(--red); color: #fff; }
 
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 0;
 }
+.stat { text-align: center; min-width: 0; padding: 0 6px; }
+.stat + .stat { border-left: 1px solid var(--border); }
+.stat small { display: block; color: var(--muted); font-size: .7rem; }
+.stat strong { display: block; font-size: .92rem; font-weight: 700; overflow-wrap: anywhere; }
 
-.stat {
-  text-align: center;
-  min-width: 0;
-}
-
-.stat + .stat {
-  border-left: 1px solid var(--border);
-}
-
-.stat small {
-  display: block;
-  color: var(--muted);
-  font-size: .68rem;
-}
-
-.stat strong {
-  display: block;
-  font-size: .79rem;
-  font-weight: 650;
-  overflow-wrap: anywhere;
-}
-
-/* DESCARGA */
+.description { color: var(--muted); font-size: .88rem; line-height: 1.65; }
 
 .download {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  background: var(--red);
-  color: white;
+  gap: 9px;
+  background: linear-gradient(135deg, var(--red), var(--red-2));
+  color: #fff;
   text-decoration: none;
-  font-size: .83rem;
+  font-size: .95rem;
   font-weight: 700;
-  padding: 10px;
-  border-radius: 6px;
-  transition: background .2s;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(229, 27, 39, .35);
+  transition: transform .15s, filter .2s;
 }
+.download:hover { filter: brightness(1.1); }
+.download:active { transform: scale(.98); }
+.download svg { width: 19px; height: 19px; }
 
-.download:hover {
-  background: #ff303b;
+/* Información técnica desplegable */
+.tecnica { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+
+.tecnica summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  font-size: .88rem;
+  font-weight: 700;
 }
-
-.download:active {
-  transform: scale(.98);
+.tecnica summary::-webkit-details-marker { display: none; }
+.tecnica summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform .2s;
 }
+.tecnica[open] summary::after { transform: rotate(-135deg); }
 
-.download:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 3px;
+.tecnica dl { border-top: 1px solid var(--border); }
+.fila { display: flex; justify-content: space-between; gap: 16px; padding: 10px 16px; font-size: .82rem; }
+.fila:nth-child(odd) { background: var(--surface-2); }
+.fila dt { color: var(--muted); flex-shrink: 0; }
+.fila dd { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+.sha { padding: 14px 16px; border-top: 1px solid var(--border); }
+.sha p { font-size: .78rem; font-weight: 700; margin-bottom: 8px; }
+.sha code {
+  display: block;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: .72rem;
+  word-break: break-all;
+  user-select: all;
 }
-
-.download svg {
-  width: 16px;
-  height: 16px;
+.sha small { display: block; color: var(--muted); font-size: .72rem; margin-top: 8px; }
+.copiar {
+  margin-top: 10px;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
 }
+.copiar:hover { border-color: var(--red); }
 
-/* PIE DE PÁGINA */
+/* Subido por */
+.subido { font-size: .82rem; color: var(--muted); }
+.subido button {
+  font: inherit;
+  font-weight: 700;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 2px dotted var(--red-2);
+  cursor: pointer;
+  padding: 0 1px;
+}
+.devs { display: none; margin-top: 10px; align-items: center; gap: 8px; flex-wrap: wrap; }
+.devs.abierto { display: flex; animation: aparece .25s ease; }
+.devs span { font-size: .78rem; }
+.dev-chip {
+  padding: 5px 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--red);
+  border-radius: 99px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+@keyframes aparece { from { opacity: 0; transform: translateY(-4px); } }
 
 footer {
   border-top: 1px solid var(--border);
-  padding: 20px 0;
+  background: var(--surface);
+  padding: 22px 0;
   text-align: center;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: .78rem;
 }
-
-footer strong {
-  color: #ccc;
-  font-weight: 600;
-}
-
-/* MÓVILES */
+footer strong { color: var(--text); font-weight: 700; }
 
 @media (max-width: 480px) {
-  header {
-    padding-top: 24px;
-  }
+  .intro { padding-top: 30px; }
+  .project { padding: 16px; border-radius: 18px; }
+  .app-icon { width: 76px; height: 76px; border-radius: 17px; }
+  .project-info h3 { font-size: 1.15rem; }
+  .brand span { display: none; }
+}
 
-  .intro {
-    margin-bottom: 26px;
-  }
-
-  .intro h1 {
-    font-size: 1.35rem;
-  }
-
-  .project {
-    padding: 13px;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .blob, .rejilla, .flota, .devs.abierto { animation: none; }
+  html { scroll-behavior: auto; }
 }
 </style>
 </head>
 
 <body>
 
-<header>
+<!-- Iconos del fondo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-pad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M7 10v4M5 12h4M15 12h.01M18 11h.01"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM12 22V12M21 7l-9 5-9-5"/></symbol>
+</svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="rejilla"></div>
+  <div id="flotantes"></div>
+</div>
+
+<header class="topbar">
   <div class="container">
-    <img
-      class="logo"
-      src="imagen/logo.png"
-      alt="Fennex Studio"
-    >
+    <a class="brand" href="#">
+      <img class="logo" src="imagen/logo.png" alt="Fennex Studio">
+      <span>Fennex Studio</span>
+    </a>
+
+    <button class="tema-btn" id="tema" type="button" aria-label="Cambiar entre modo oscuro y claro" title="Modo oscuro / claro">
+      <svg class="luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
   </div>
 </header>
 
 <main class="container">
 
   <section class="intro">
-    <h1>Aplicaciones y juegos</h1>
-    <p>Explora nuestros proyectos y descárgalos.</p>
+    <h1>Fennex Studio</h1>
+    <p>Descarga el APK, revisa los datos técnicos y verifica el archivo con su SHA-256 antes de instalar.</p>
+    <div class="chips">
+      <span class="chip"><i></i>APK para Android</span>
+      <span class="chip"><i></i><span id="total">1 proyecto</span></span>
+    </div>
   </section>
 
   <div class="section-title">
-    <h2>PROYECTOS</h2>
+    <h2>Proyectos</h2>
     <span></span>
   </div>
 
@@ -302,8 +478,7 @@ footer strong {
 
 <footer>
   <div class="container">
-    © <span id="anio"></span> <strong>Fennex Studio</strong>
-    · Todos los derechos reservados.
+    © <span id="anio"></span> <strong>Fennex Studio</strong>. Todos los derechos reservados.
   </div>
 </footer>
 
@@ -317,12 +492,22 @@ const proyectos = [
   {
     nombre: "Touch Challenge",
     tipo: "Juego",
-    descripcion: "Pon a prueba tus reflejos. Toca la pantalla lo más rápido posible y supera tu propio récord.",
+    descripcion: "Touch Challenge es una aplicación Android diseñada para ofrecer una experiencia de desafío basada en la interacción táctil. Pon a prueba tus reflejos, toca la pantalla lo más rápido posible y supera tu propio récord.",
     apk: "apk/TouchChallenge.apk",
     icono: "imagen/apk logo touchchallenge.png",
-    peso: "25 MB",
+    peso: "18 MB",
     plataforma: "Android",
-    version: "1.0"
+    version: "1.2 BETA",
+    desarrollador: "Fennex Studio",
+    subidoPor: "Fennex Studio",
+    devs: ["AntonCz", "LoanZei"],
+    paquete: "com.touchchallenge.game",
+    minimo: "Android 14 (API 34)",
+    objetivo: "Android 15 (API 35)",
+    orientacion: "Vertical",
+    codigo: "1",
+    formato: "APK",
+    sha256: "5be0b8aee44528513867e24ea6752153411195fbed0b88a2d59cff3a61868cb0"
   }
 
   // Para añadir otro proyecto, copia un bloque:
@@ -336,7 +521,11 @@ const proyectos = [
     icono: "imagen/nombre.png",
     peso: "10 MB",
     plataforma: "Android",
-    version: "1.0"
+    version: "1.0",
+    desarrollador: "Fennex Studio",
+    subidoPor: "Fennex Studio",
+    devs: ["AntonCz", "LoanZei"]
+    // Opcionales: paquete, minimo, objetivo, orientacion, codigo, formato, sha256
   }
   */
 ];
@@ -349,10 +538,8 @@ const contenedor = document.getElementById("proyectos");
 
 function crearElemento(tag, clase, texto) {
   const elemento = document.createElement(tag);
-
   if (clase) elemento.className = clase;
   if (texto !== undefined) elemento.textContent = texto;
-
   return elemento;
 }
 
@@ -367,86 +554,168 @@ proyectos.forEach(p => {
   icono.src = p.icono;
   icono.alt = "Icono de " + p.nombre;
   icono.loading = "lazy";
-
   icono.onerror = () => {
-    const fallback = crearElemento(
-      "div",
-      "app-icon",
-      p.nombre.charAt(0).toUpperCase()
-    );
-
-    icono.replaceWith(fallback);
+    icono.replaceWith(crearElemento("div", "app-icon", p.nombre.charAt(0).toUpperCase()));
   };
 
   const informacion = crearElemento("div", "project-info");
+  const insignias = crearElemento("div", "badges");
+  insignias.append(crearElemento("span", "badge", p.tipo));
+  if (/beta/i.test(p.version)) insignias.append(crearElemento("span", "badge beta", "BETA"));
 
-  const nombre = crearElemento("h3", "", p.nombre);
-  const tipo = crearElemento("span", "type", p.tipo);
-
-  informacion.append(nombre, tipo);
-  encabezado.append(icono, informacion);
-
-  // Descripción
-  const descripcion = crearElemento(
-    "p",
-    "description",
-    p.descripcion
+  informacion.append(
+    crearElemento("h3", "", p.nombre),
+    crearElemento("p", "dev", p.desarrollador || "Fennex Studio"),
+    insignias
   );
+  encabezado.append(icono, informacion);
 
   // Estadísticas
   const estadisticas = crearElemento("div", "stats");
-
   [
     ["Tamaño", p.peso],
     ["Sistema", p.plataforma],
     ["Versión", p.version]
   ].forEach(([titulo, valor]) => {
-
     const stat = crearElemento("div", "stat");
-
-    stat.append(
-      crearElemento("small", "", titulo),
-      crearElemento("strong", "", valor)
-    );
-
+    stat.append(crearElemento("small", "", titulo), crearElemento("strong", "", valor));
     estadisticas.append(stat);
   });
 
-  // Botón de descarga
-  const boton = crearElemento("a", "download", "Descargar");
+  // Descripción
+  const descripcion = crearElemento("p", "description", p.descripcion);
 
+  // Botón de descarga
+  const boton = crearElemento("a", "download");
   boton.href = p.apk;
   boton.setAttribute("download", "");
-
   boton.innerHTML = `
-    <svg viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <path d="m7 10 5 5 5-5"/>
       <path d="M12 15V3"/>
-    </svg>
-    Descargar APK
-  `;
+    </svg>`;
+  boton.append(document.createTextNode("Descargar APK (" + p.peso + ")"));
 
-  tarjeta.append(
-    encabezado,
-    descripcion,
-    estadisticas,
-    boton
-  );
+  tarjeta.append(encabezado, estadisticas, descripcion, boton);
 
+  // Información técnica
+  const filas = [
+    ["Nombre", p.nombre],
+    ["Desarrollador", p.desarrollador],
+    ["Versión", p.version],
+    ["Formato", p.formato],
+    ["Package ID", p.paquete],
+    ["Sistema mínimo", p.minimo],
+    ["Sistema objetivo", p.objetivo],
+    ["Orientación", p.orientacion],
+    ["Código de versión", p.codigo],
+    ["Tamaño", p.peso]
+  ].filter(f => f[1]);
+
+  const tecnica = crearElemento("details", "tecnica");
+  tecnica.append(crearElemento("summary", "", "Información técnica"));
+
+  const lista = crearElemento("dl");
+  filas.forEach(([titulo, valor]) => {
+    const fila = crearElemento("div", "fila");
+    fila.append(crearElemento("dt", "", titulo), crearElemento("dd", "", valor));
+    lista.append(fila);
+  });
+  tecnica.append(lista);
+
+  if (p.sha256) {
+    const sha = crearElemento("div", "sha");
+    const copiar = crearElemento("button", "copiar", "Copiar SHA-256");
+    copiar.type = "button";
+    copiar.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(p.sha256);
+        copiar.textContent = "Copiado";
+      } catch (e) {
+        copiar.textContent = "Selecciona el texto y cópialo";
+      }
+      setTimeout(() => (copiar.textContent = "Copiar SHA-256"), 2000);
+    };
+    sha.append(
+      crearElemento("p", "", "Verificación del archivo (SHA-256)"),
+      crearElemento("code", "", p.sha256),
+      crearElemento("small", "", "El SHA-256 permite verificar la integridad e identidad del APK publicado."),
+      copiar
+    );
+    tecnica.append(sha);
+  }
+
+  tarjeta.append(tecnica);
+
+  // Subido por + devs
+  const subido = crearElemento("div", "subido");
+  const nombreSubido = crearElemento("button", "", p.subidoPor || "Fennex Studio");
+  nombreSubido.type = "button";
+  nombreSubido.setAttribute("aria-expanded", "false");
+  subido.append(document.createTextNode("Uploaded by: "), nombreSubido);
+
+  if (p.devs && p.devs.length) {
+    const devs = crearElemento("div", "devs");
+    devs.append(crearElemento("span", "", "Devs:"));
+    p.devs.forEach(d => devs.append(crearElemento("span", "dev-chip", d)));
+    nombreSubido.onclick = () => {
+      const abierto = devs.classList.toggle("abierto");
+      nombreSubido.setAttribute("aria-expanded", abierto);
+    };
+    subido.append(devs);
+  }
+
+  tarjeta.append(subido);
   contenedor.append(tarjeta);
-
 });
 
+document.getElementById("total").textContent =
+  proyectos.length + (proyectos.length === 1 ? " proyecto" : " proyectos");
+
+/* =====================================
+   MODO OSCURO / CLARO
+   ===================================== */
+
+const raiz = document.documentElement;
+const metaColor = document.getElementById("theme-color");
+
+function aplicarTema(tema) {
+  raiz.setAttribute("data-theme", tema);
+  metaColor.setAttribute("content", tema === "dark" ? "#0b0a0f" : "#f4f2f7");
+}
+
+aplicarTema(raiz.getAttribute("data-theme"));
+
+document.getElementById("tema").addEventListener("click", () => {
+  const nuevo = raiz.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  aplicarTema(nuevo);
+  try { localStorage.setItem("tema", nuevo); } catch (e) {}
+});
+
+/* =====================================
+   ICONOS FLOTANTES DEL FONDO
+   ===================================== */
+
+const flotantes = document.getElementById("flotantes");
+const iconos = ["i-pad", "i-code", "i-pen", "i-cube"];
+
+for (let i = 0; i < 14; i++) {
+  const el = document.createElement("div");
+  const tam = 30 + (i * 17) % 38;
+  el.className = "flota";
+  el.style.cssText =
+    `left:${(i * 29 + 7) % 94}%;top:${(i * 43 + 11) % 90}%;` +
+    `width:${tam}px;height:${tam}px;` +
+    `--t:${14 + (i * 3) % 12}s;--dx:${(i % 2 ? 1 : -1) * (20 + i * 3)}px;--dy:${-30 - (i * 7) % 50}px;` +
+    `--r0:${-10 - i}deg;--r1:${12 + i}deg;animation-delay:${-i * 2}s`;
+  el.innerHTML = `<svg viewBox="0 0 24 24"><use href="#${iconos[i % 4]}"/></svg>`;
+  flotantes.append(el);
+}
+
 // Año automático
-document.getElementById("anio").textContent =
-  new Date().getFullYear();
+document.getElementById("anio").textContent = new Date().getFullYear();
 
 </script>
 
